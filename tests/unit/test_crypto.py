@@ -183,3 +183,22 @@ def test_build_provider_uses_inline_master_key() -> None:
     )
     cipher = EnvelopeCipher(build_key_provider(settings))
     assert cipher.decrypt(cipher.encrypt(SECRET)) == SECRET
+
+
+@pytest.mark.unit
+def test_ephemeral_key_is_stable_across_providers_in_one_process() -> None:
+    # With NO master key configured (dev), two separately-built providers must
+    # derive the SAME ephemeral KEK — otherwise a credential encrypted by the
+    # API's vault could not be decrypted by a separately-built engine resolver in
+    # the same process. The key is process-memoised; it still does not survive a
+    # restart (that warning stands), but intra-process it must be consistent.
+    settings = Settings(
+        environment=Environment.DEV,
+        secret_backend=SecretBackend.FILE,
+        master_key=None,
+        master_key_path="/nonexistent/axiom-no-such-key.bin",
+    )
+    cipher_a = EnvelopeCipher(build_key_provider(settings))
+    cipher_b = EnvelopeCipher(build_key_provider(settings))
+    # Encrypt with one, decrypt with the OTHER — must round-trip.
+    assert cipher_b.decrypt(cipher_a.encrypt(SECRET)) == SECRET

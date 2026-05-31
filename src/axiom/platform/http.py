@@ -45,6 +45,7 @@ from axiom.platform.egress import (
     EgressBlockedError,
     ensure_ip_allowed,
     ip_address,
+    normalize_host,
     validate_url,
 )
 
@@ -71,7 +72,7 @@ async def _system_resolver(host: str, port: int) -> list[str]:
 
 def _is_ip_literal(host: str) -> bool:
     try:
-        ip_address(host)
+        ip_address(normalize_host(host))
     except ValueError:
         return False
     return True
@@ -100,7 +101,16 @@ class _EgressGuardTransport(httpx.AsyncBaseTransport):
             # A hostname: resolve and check every resolved address. Blocking if
             # ANY resolved IP is private defends against a name that (sometimes)
             # points at an internal address — the rebinding vector.
-            ips = await self._resolve(host, url.port or (443 if url.scheme == "https" else 80))
+            port = url.port or (443 if url.scheme == "https" else 80)
+            try:
+                ips = await self._resolve(host, port)
+            except EgressBlockedError:
+                raise
+            except Exception as exc:
+                # Fail CLOSED: a resolver error must never let an unvalidated
+                # destination through. (Propagating would also fail the request,
+                # but as an opaque error; this makes the egress intent explicit.)
+                raise EgressBlockedError(f"could not resolve host {host!r}: {exc}") from exc
             if not ips:
                 raise EgressBlockedError(f"could not resolve host {host!r}")
             for ip in ips:

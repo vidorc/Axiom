@@ -144,3 +144,37 @@ async def test_unresolvable_host_is_blocked() -> None:
     async with client:
         with pytest.raises(EgressBlockedError):
             await client.get("https://nxdomain.example.com/")
+
+
+@pytest.mark.unit
+async def test_resolver_exception_fails_closed() -> None:
+    # A resolver that RAISES (DNS timeout, SERVFAIL, injected failure) must block
+    # the request, never let it through unvalidated. The request must not reach
+    # the inner transport.
+    reached = {"inner": False}
+
+    async def _boom(host: str, port: int) -> list[str]:
+        raise OSError("simulated DNS failure")
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        reached["inner"] = True
+        return httpx.Response(200, text="LEAKED")
+
+    client = build_instrumented_client(
+        resolver=_boom, inner_transport=httpx.MockTransport(_handler)
+    )
+    async with client:
+        with pytest.raises(EgressBlockedError):
+            await client.get("https://internal.example.com/")
+    assert reached["inner"] is False, "request reached the network despite a resolver failure"
+
+
+@pytest.mark.unit
+async def test_trailing_dot_metadata_literal_blocked_without_dns() -> None:
+    # The trailing dot must not let a metadata IP literal slip past as a hostname.
+    # No resolver entry → if it were treated as a name it would 'fail to resolve',
+    # but it must be blocked as a literal regardless.
+    client = build_instrumented_client(resolver=_resolver_for({}), inner_transport=_ok_transport())
+    async with client:
+        with pytest.raises(EgressBlockedError):
+            await client.get("http://169.254.169.254./latest/meta-data/")

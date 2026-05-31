@@ -273,7 +273,7 @@ def _load_file_key_material(settings: Settings) -> bytes:
                 "AXIOM_MASTER_KEY or generate one at AXIOM_MASTER_KEY_PATH."
             ),
         )
-        return os.urandom(_KEY_BYTES)
+        return _ephemeral_key()
 
     raise ConfigError(
         "No vault master key available: set AXIOM_MASTER_KEY or generate a key at "
@@ -298,3 +298,20 @@ def _decode_material(value: str) -> bytes:
 def generate_master_key() -> str:
     """Mint a fresh base64-encoded 256-bit master key (for ``axiom`` setup tooling)."""
     return base64.b64encode(os.urandom(_KEY_BYTES)).decode("ascii")
+
+
+# A single ephemeral key per process, minted lazily on first use. Memoised at
+# module scope so that EVERY ``build_key_provider`` call in a process that has no
+# master key configured derives the SAME KEK — without this, a second vault built
+# in-process (e.g. the API's vault vs. a separately-built resolver) would mint a
+# fresh random key and fail to decrypt what the first vault encrypted. It is still
+# process-scoped and does NOT survive a restart (the warning above stands); it
+# only guarantees intra-process consistency.
+_EPHEMERAL_KEY: bytes | None = None
+
+
+def _ephemeral_key() -> bytes:
+    global _EPHEMERAL_KEY
+    if _EPHEMERAL_KEY is None:
+        _EPHEMERAL_KEY = os.urandom(_KEY_BYTES)
+    return _EPHEMERAL_KEY

@@ -178,6 +178,7 @@ def _parse_auth(raw_auth: Any) -> tuple[AuthInjection, ...]:
     if not isinstance(raw_auth, list):
         raise ManifestError("`auth` must be a list")
     injections: list[AuthInjection] = []
+    seen_targets: set[tuple[str, str]] = set()
     for entry in raw_auth:
         if not isinstance(entry, dict):
             raise ManifestError("each `auth` entry must be a mapping")
@@ -196,6 +197,16 @@ def _parse_auth(raw_auth: Any) -> tuple[AuthInjection, ...]:
                 f"got {where!r}"
             )
         name = _require_str(inject, "name", ctx=f"auth.inject for {provider!r}")
+        # Reject two injections at the same target — the executor would otherwise
+        # silently overwrite the first, sending only the second credential. Header
+        # names are case-insensitive (HTTP), query params are not.
+        target_key = (where, name.lower() if where == "header" else name)
+        if target_key in seen_targets:
+            raise ManifestError(
+                f"two auth injections target the same {where} {name!r}; "
+                "each credential must inject into a distinct header/param"
+            )
+        seen_targets.add(target_key)
         value = str(inject.get("value", f"{{{{ credentials.{provider} }}}}"))
         injections.append(
             AuthInjection(provider=provider, where=where, name=name, value_template=value)

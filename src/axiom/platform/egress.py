@@ -110,15 +110,32 @@ def ensure_ip_allowed(ip: IPv4Address | IPv6Address) -> None:
         raise EgressBlockedError(f"blocked egress to {reason}")
 
 
+def normalize_host(host: str) -> str:
+    """Canonicalise a host before IP parsing, closing two literal-evasion vectors.
+
+    * A **trailing dot** (``127.0.0.1.``) is a valid FQDN root marker that makes
+      ``ip_address()`` raise, which would otherwise reclassify an IP literal as a
+      hostname and skip the literal check.
+    * An **IPv6 zone id** (``fe80::1%eth0``) likewise fails ``ip_address()``; the
+      scope suffix is irrelevant to the address-range decision, so we drop it.
+    """
+    host = host.rstrip(".")
+    if "%" in host:  # strip an IPv6 scope/zone id
+        host = host.split("%", 1)[0]
+    return host
+
+
 def is_ip_literal_blocked(host: str) -> bool:
     """True if ``host`` is an IP literal that the policy blocks.
 
     Used to reject a URL whose host is already an IP (no DNS needed). A hostname
     (not an IP literal) returns ``False`` here — it must be resolved and each
-    resolved IP checked with :func:`ensure_ip_allowed` by the client.
+    resolved IP checked with :func:`ensure_ip_allowed` by the client. The host is
+    normalised first (trailing dot, IPv6 zone id) so those forms can't disguise an
+    IP literal as a name.
     """
     try:
-        ip = ip_address(host)
+        ip = ip_address(normalize_host(host))
     except ValueError:
         return False  # not an IP literal — defer to DNS-time resolution
     return classify_ip(ip) is not None
@@ -161,5 +178,6 @@ __all__ = [
     "ip_address",
     "ip_network",
     "is_ip_literal_blocked",
+    "normalize_host",
     "validate_url",
 ]

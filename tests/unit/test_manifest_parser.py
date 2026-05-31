@@ -175,3 +175,46 @@ def test_rejects_bad_inject_type() -> None:
     }
     with pytest.raises(ManifestError, match=r"inject\.type"):
         parse_manifest(bad)
+
+
+@pytest.mark.unit
+def test_rejects_duplicate_auth_injection_target() -> None:
+    # Two credentials injecting into the same header would silently overwrite at
+    # execute time (only the second would be sent) — reject it at parse time.
+    bad = {
+        **APOLLO,
+        "auth": [
+            {"provider": "apollo", "inject": {"type": "header", "name": "X-Api-Key"}},
+            {"provider": "other", "inject": {"type": "header", "name": "X-Api-Key"}},
+        ],
+    }
+    with pytest.raises(ManifestError, match="same header"):
+        parse_manifest(bad)
+
+
+@pytest.mark.unit
+def test_duplicate_header_target_is_case_insensitive() -> None:
+    # HTTP header names are case-insensitive, so X-Api-Key and x-api-key collide.
+    bad = {
+        **APOLLO,
+        "auth": [
+            {"provider": "a", "inject": {"type": "header", "name": "X-Api-Key"}},
+            {"provider": "b", "inject": {"type": "header", "name": "x-api-key"}},
+        ],
+    }
+    with pytest.raises(ManifestError, match="same header"):
+        parse_manifest(bad)
+
+
+@pytest.mark.unit
+def test_distinct_targets_are_allowed() -> None:
+    # Two credentials into DIFFERENT targets (header + query) is fine.
+    ok = {
+        **APOLLO,
+        "auth": [
+            {"provider": "a", "inject": {"type": "header", "name": "X-Api-Key"}},
+            {"provider": "b", "inject": {"type": "query", "name": "token"}},
+        ],
+    }
+    m = parse_manifest(ok)
+    assert len(m.auth) == 2

@@ -23,6 +23,7 @@ real: Apollo, Prospeo, Smartlead, and most provider calls are now a YAML file.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -86,9 +87,16 @@ class _ManifestNode(BaseNode):
             target = headers if inj.where == "header" else params
             target[inj.name] = value
 
-        # Log the request WITHOUT headers/params — those carry the injected
-        # credential; the URL host is safe and useful for tracing.
-        ctx.log.info("manifest.request", node=manifest.id, method=manifest.request.method, url=url)
+        # Log the request with only scheme+host — never the full URL, headers, or
+        # params. Those can carry an injected credential (an author may template
+        # `{{ credentials.x }}` into a query param or path), and the URL host is
+        # the safe, useful tracing value (it was already egress-validated).
+        ctx.log.info(
+            "manifest.request",
+            node=manifest.id,
+            method=manifest.request.method,
+            host=_safe_host(url),
+        )
 
         # 3) Make the call through the instrumented client.
         try:
@@ -169,6 +177,17 @@ def build_manifest_node(manifest: Manifest) -> type[BaseNode]:
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────────
+
+
+def _safe_host(url: str) -> str:
+    """Scheme + host of a URL, dropping path/query/fragment — log-safe.
+
+    The query or path may contain a credential an author templated into the URL,
+    so only the scheme+host (already egress-validated) is ever logged.
+    """
+    parts = urlsplit(url)
+    host = parts.hostname or "?"
+    return f"{parts.scheme}://{host}" if parts.scheme else host
 
 
 def _match_rule(rules: tuple[ErrorRule, ...], status: int) -> ErrorRule | None:

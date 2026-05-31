@@ -18,6 +18,7 @@ from axiom.platform.egress import (
     ensure_ip_allowed,
     ip_address,
     is_ip_literal_blocked,
+    normalize_host,
     validate_url,
 )
 
@@ -160,3 +161,34 @@ def test_hostname_passes_literal_check_for_dns_time_validation() -> None:
     # the client to resolve and re-check post-DNS (rebinding defense).
     assert is_ip_literal_blocked("api.example.com") is False
     assert validate_url("https://api.example.com/x") == "api.example.com"
+
+
+# ── Literal-evasion normalization (trailing dot, IPv6 zone id) ──────────────────
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "host",
+    [
+        "169.254.169.254.",  # trailing-dot metadata IP — must still be seen as a literal
+        "127.0.0.1.",  # trailing-dot loopback
+        "10.0.0.1.",  # trailing-dot private
+    ],
+)
+def test_trailing_dot_ip_literal_is_still_blocked(host: str) -> None:
+    # A trailing dot makes ip_address() raise; without normalization the literal
+    # would be mistaken for a hostname and skip the literal check.
+    assert is_ip_literal_blocked(host) is True
+
+
+@pytest.mark.unit
+def test_ipv6_zone_id_literal_is_still_blocked() -> None:
+    # fe80::1%eth0 is link-local; the zone id must be stripped before classifying.
+    assert is_ip_literal_blocked("fe80::1%eth0") is True
+
+
+@pytest.mark.unit
+def test_normalize_host_strips_trailing_dot_and_zone() -> None:
+    assert normalize_host("127.0.0.1.") == "127.0.0.1"
+    assert normalize_host("fe80::1%eth0") == "fe80::1"
+    assert normalize_host("api.example.com") == "api.example.com"

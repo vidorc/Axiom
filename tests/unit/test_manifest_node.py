@@ -220,3 +220,31 @@ async def test_outputs_default_to_body_when_unmapped() -> None:
     async with ctx.http:
         out = await node.execute(ctx, {"email": "ada@example.com"})
     assert out == {"body": payload}
+
+
+@pytest.mark.unit
+async def test_credential_in_url_template_never_reaches_logs() -> None:
+    # A manifest author can (unwisely) template a credential into the URL itself.
+    # The request log must record only scheme+host, never the full URL — so the
+    # secret cannot land in a log line under a non-redacted key.
+    import structlog
+
+    manifest = {
+        **MANIFEST,
+        "request": {
+            "method": "GET",
+            "url": "https://api.apollo.example/v1/lookup?key={{ credentials.apollo }}",
+        },
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        # Confirm the secret really IS in the outgoing URL (so the test is real).
+        assert SECRET in str(request.url)
+        return httpx.Response(200, json={})
+
+    node = build_manifest_node(parse_manifest(manifest))()
+    ctx = _ctx(handler)
+    with structlog.testing.capture_logs() as logs:
+        async with ctx.http:
+            await node.execute(ctx, {"email": "ada@example.com"})
+    assert SECRET not in repr(logs), "credential templated into the URL leaked into a log event"
