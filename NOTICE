@@ -1,0 +1,18 @@
+Axiom
+Copyright 2026 The Axiom Authors
+
+This product includes software developed at The Axiom Authors
+(https://github.com/axiom).
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file for
+the full license text.
+
+---
+
+Axiom is open-core. The core — workflow engine, node runtime, node SDK,
+core nodes, MCP runtime, workflow builder, and CLI — is licensed under
+Apache-2.0. Cloud-specific control-plane components (managed hosting,
+billing, autoscaling orchestration, SSO/SCIM, audit-export, and the hosted
+marketplace backend) are developed separately and are NOT part of this
+Apache-2.0 distribution. See docs/adr/0007-licensing-apache-dco.md and
+BLUEPRINT.md §5 for the full open-core boundary.

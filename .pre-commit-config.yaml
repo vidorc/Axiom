@@ -1,0 +1,49 @@
+# Pre-commit hooks — the local fast gate. Mirrors `make check` / CI so problems
+# surface before a commit, not in review. Install with `pre-commit install`
+# (done by `make setup`).
+#
+# DCO sign-off is enforced separately by CI on the PR (CONTRIBUTING.md); use
+# `git commit -s`. The prepare-commit-msg hook installed by `make setup` can
+# add the trailer automatically.
+minimum_pre_commit_version: "4.0.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+      - id: check-yaml
+      - id: check-toml
+      - id: detect-private-key   # never commit a key (SECURITY.md)
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff           # lint
+        args: ["--fix"]
+      - id: ruff-format    # format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.10
+          - types-pyyaml>=6.0
+        # Type only the package; tests/spikes are checked in CI's typecheck lane.
+        files: ^src/axiom/
+
+  # Boundary enforcement runs as a local hook so violations are caught at commit
+  # time, not just in CI (ADR-0002, audit R1). Requires deps installed in-env.
+  - repo: local
+    hooks:
+      - id: import-linter
+        name: import-linter (module boundaries)
+        entry: lint-imports
+        language: system
+        pass_filenames: false
+        files: ^src/axiom/.*\.py$

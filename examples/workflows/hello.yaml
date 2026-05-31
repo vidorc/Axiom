@@ -1,0 +1,43 @@
+# Example Axiom workflow — runnable with `axiom run examples/workflows/hello.yaml`.
+#
+# A tiny enrichment-shaped pipeline using only built-in nodes (no credentials, no
+# network), so it runs anywhere out of the box. It demonstrates the core engine
+# features: a DAG, data flowing through edges, and a fan-in.
+#
+#   prepare ──▶ tag_lead ──▶ finalize
+#           └─▶ tag_source ┘
+#
+# Try:
+#   axiom run examples/workflows/hello.yaml --input '{"email":"ada@example.com"}'
+
+name: hello-enrichment
+
+graph:
+  nodes:
+    # Echo the run input so downstream nodes have something to shape.
+    - id: prepare
+      node_ref: axiom/echo
+
+    # Two independent "enrichment" branches that each stamp a field.
+    - id: tag_lead
+      node_ref: axiom/set-fields
+      config:
+        fields:
+          stage: lead
+
+    - id: tag_source
+      node_ref: axiom/set-fields
+      config:
+        fields:
+          source: example-workflow
+
+    # Fan-in: both branches converge here. With empty edge mappings, each
+    # branch's output is merged onto this node's input.
+    - id: finalize
+      node_ref: axiom/echo
+
+  edges:
+    - { from: prepare, to: tag_lead }
+    - { from: prepare, to: tag_source }
+    - { from: tag_lead, to: finalize }
+    - { from: tag_source, to: finalize }

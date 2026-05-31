@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Axiom — durable workflows for go-to-market.</title>
+    <meta
+      name="description"
+      content="Axiom is a durable workflow engine for go-to-market. Compose enrichment, AI, and outreach into one DAG, run it on your own keys, and never drop a lead — even through a crash."
+    />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Geist / Geist Mono are proprietary; Inter + JetBrains Mono are the
+         open-source substitutes documented in DESIGN.md. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ── Announcement banner (banner-marketing) ───────────────────────── -->
+    <div class="banner">
+      <a class="banner-pill" href="#">
+        <span class="badge">New</span>
+        <span>Axiom Phase 1 — the durable engine is live.</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <!-- ── Nav (nav-bar) ────────────────────────────────────────────────── -->
+    <header class="nav">
+      <nav class="nav-inner" aria-label="Primary">
+        <a class="nav-brand" href="#" aria-label="Axiom home">
+          <svg class="nav-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 2 L22 21 H2 Z" fill="#171717" />
+            <path d="M12 9 L17 19 H7 Z" fill="#ffffff" />
+          </svg>
+          Axiom
+        </a>
+        <div class="nav-links">
+          <a class="nav-link" href="#features">Product</a>
+          <a class="nav-link" href="#engine">Engine</a>
+          <a class="nav-link" href="#pricing">Pricing</a>
+          <a class="nav-link" href="#">Docs</a>
+          <a class="nav-link" href="#">Changelog</a>
+        </div>
+        <div class="nav-cta-cluster">
+          <button class="nav-btn nav-btn--ask-ai" type="button">Ask AI</button>
+          <a class="nav-btn nav-btn--login" href="#">Log In</a>
+          <a class="nav-btn nav-btn--signup" href="#">Sign Up</a>
+        </div>
+        <button class="nav-toggle" type="button" aria-label="Open menu">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M2 5h14M2 9h14M2 13h14" stroke="#171717" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ── Hero (hero-band + mesh gradient) ───────────────────────────── -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="mesh" aria-hidden="true"></div>
+        <div class="hero-inner">
+          <p class="eyebrow">Durable workflow engine</p>
+          <h1 id="hero-title" class="t-display-xl">Build outbound that runs itself.</h1>
+          <p class="hero-lead t-body-lg">
+            Axiom composes enrichment, AI, and outreach into one durable DAG. Run it on your own
+            keys, fan out over thousands of companies, and never drop a lead — even when a worker
+            dies mid-run.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn--primary" href="#">Start building</a>
+            <a class="btn btn--secondary" href="#engine">Read the docs</a>
+          </div>
+          <p class="hero-hint t-body-sm">
+            Define a workflow in YAML, then <code>axiom run outbound.yaml</code>
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Logo strip (logo-strip) ────────────────────────────────────── -->
+      <section class="logo-strip" aria-label="Teams running on Axiom">
+        <div class="container">
+          <p class="t-body-sm">Trusted by go-to-market teams and the agencies that run them</p>
+          <div class="logo-row">
+            <span>Northwind</span>
+            <span>Cadence</span>
+            <span>Outset</span>
+            <span>Meridian</span>
+            <span>Lumen&nbsp;GTM</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Features (card-marketing, 3-up) ────────────────────────────── -->
+      <section class="band feature-band" id="features" aria-labelledby="features-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Why Axiom</p>
+            <h2 id="features-title" class="t-display-lg">An engine, not a toy canvas.</h2>
+            <p class="t-body-md">
+              The workflow that matters is the one that finishes. Axiom is built around durability,
+              your credentials, and composability — the three things automation tools get wrong.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M9 1.5v5M9 1.5 6.5 4M9 1.5 11.5 4" stroke="#171717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M2.5 8.5a6.5 6.5 0 1 0 13 0" stroke="#171717" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+              </div>
+              <h3 class="t-display-sm">Durable by default.</h3>
+              <p class="t-body-md">
+                Kill the process mid-run and it resumes to exactly-once completion. An append-only
+                event log and lease-based recovery mean no double-sends — ever.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="3" y="7.5" width="12" height="8" rx="1.5" stroke="#171717" stroke-width="1.5" />
+                  <path d="M5.5 7.5V5a3.5 3.5 0 1 1 7 0v2.5" stroke="#171717" stroke-width="1.5" />
+                </svg>
+              </div>
+              <h3 class="t-display-sm">Bring your own keys.</h3>
+              <p class="t-body-md">
+                Credentials are sealed with envelope encryption and unwrapped in memory only.
+                Plaintext never lands in a log, an event, or a database row.
+              </p>
+            </article>
+
+            <article class="card">
+              <div class="card-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="4.5" cy="4.5" r="2" stroke="#171717" stroke-width="1.5" />
+                  <circle cx="13.5" cy="4.5" r="2" stroke="#171717" stroke-width="1.5" />
+                  <circle cx="9" cy="13.5" r="2" stroke="#171717" stroke-width="1.5" />
+                  <path d="M4.5 6.5v2a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2v-2M9 11.5v0" stroke="#171717" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+              </div>
+              <h3 class="t-display-sm">Composable nodes.</h3>
+              <p class="t-body-md">
+                Wrap any provider as an HTTP manifest in minutes, or drop to code when you need it.
+                Compose them into a DAG with parallel branches and typed retries.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Dark showcase band (showcase-band-dark + code-editor-mockup) ── -->
+      <section class="band showcase-dark" id="engine" aria-labelledby="engine-title">
+        <div class="container">
+          <div class="showcase-grid">
+            <div class="showcase-copy">
+              <p class="eyebrow">The orchestrator</p>
+              <h2 id="engine-title" class="t-display-lg">A compute model for go-to-market.</h2>
+              <p class="t-body-md">
+                Postgres and Redis under the hood — no Temporal, no black box. You define the
+                workflow declaratively; Axiom claims, runs, settles, and reaps every node with
+                sub-100&nbsp;ms orchestration overhead.
+              </p>
+              <ul class="showcase-list">
+                <li><span class="tick" aria-hidden="true">✓</span> Parallel branches with per-node retry policy and a strict error taxonomy.</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Crash recovery proven under <code class="t-code">kill -9</code> — verified in CI.</li>
+                <li><span class="tick" aria-hidden="true">✓</span> A real cost ledger: per-node, per-token spend rolled up per run.</li>
+              </ul>
+              <div class="hero-cta">
+                <a class="btn btn--on-dark" href="#">Explore the engine</a>
+              </div>
+            </div>
+
+            <figure class="code-mock" aria-label="An Axiom workflow and the CLI run that executes it">
+              <div class="code-mock-bar">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="dot" aria-hidden="true"></span>
+                <span class="dot" aria-hidden="true"></span>
+                <span class="file">outbound.yaml</span>
+              </div>
+              <pre><code><span class="tok-com"># fan out over a list, enrich, personalize, send</span>
+<span class="tok-key">nodes</span>:
+  <span class="tok-key">companies</span>:
+    <span class="tok-key">uses</span>: <span class="tok-str">csv.read</span>
+    <span class="tok-key">with</span>: { <span class="tok-key">path</span>: <span class="tok-str">accounts.csv</span> }
+  <span class="tok-key">enrich</span>:
+    <span class="tok-key">uses</span>: <span class="tok-str">apollo.enrich</span>
+    <span class="tok-key">for_each</span>: <span class="tok-fn">${{ companies.rows }}</span>
+    <span class="tok-key">retry</span>: { <span class="tok-key">max</span>: <span class="tok-num">3</span>, <span class="tok-key">on</span>: <span class="tok-str">transient</span> }
+  <span class="tok-key">draft</span>:
+    <span class="tok-key">uses</span>: <span class="tok-str">claude.message</span>
+    <span class="tok-key">with</span>: { <span class="tok-key">model</span>: <span class="tok-str">claude-opus-4-8</span> }
+  <span class="tok-key">send</span>:
+    <span class="tok-key">uses</span>: <span class="tok-str">smtp.send</span>
+    <span class="tok-key">idempotent</span>: <span class="tok-num">true</span></code></pre>
+              <div class="code-mock-bar" style="border-top: 1px solid #1f1f1f; border-bottom: none;">
+                <span class="file">~/outbound</span>
+              </div>
+              <pre><code><span class="code-prompt">$</span> axiom run outbound.yaml
+<span class="tok-com">→ run cmp_8f2a started · 1,204 companies</span>
+<span class="tok-com">→ enrich  ████████████████  1,204 ok</span>
+<span class="tok-com">→ draft   ████████████████  1,204 ok</span>
+<span class="tok-com">→ send    ████████████████  1,204 ok</span>
+<span class="tok-key">done</span> in 3m12s · <span class="tok-key">cost</span> <span class="tok-num">$4.18</span> · exactly-once ✓</code></pre>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Mesh feature band (feature-mesh-band) — the cost wedge ──────── -->
+      <section class="band mesh-band" aria-labelledby="wedge-title">
+        <div class="mesh" aria-hidden="true"></div>
+        <div class="container">
+          <p class="eyebrow">Built for agencies</p>
+          <h2 id="wedge-title" class="t-display-lg">Pay for compute, not per-row markups.</h2>
+          <p class="t-body-md">
+            Enrichment tools tax every row twice — once to find data, again to use it. Axiom runs on
+            your own provider keys, so you pay the provider's rate and Axiom's flat compute. The
+            savings compound with every campaign.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn--primary" href="#pricing">See pricing</a>
+            <a class="btn btn--secondary" href="#">Talk to us</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Pricing (pricing-card + pricing-card-featured) ─────────────── -->
+      <section class="band pricing-band" id="pricing" aria-labelledby="pricing-title">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Pricing</p>
+            <h2 id="pricing-title" class="t-display-lg">Flat compute. Your keys.</h2>
+            <p class="t-body-md">
+              No per-seat tax, no per-row surcharge. Bring your own provider keys and pay for what
+              the engine actually runs.
+            </p>
+          </div>
+
+          <div class="pricing-grid">
+            <!-- Hobby -->
+            <article class="price-card">
+              <div class="price-tier">
+                <h3 class="t-display-md">Hobby</h3>
+              </div>
+              <p class="price-amount">
+                <span class="t-display-xl">$0</span>
+                <span class="per">/ month</span>
+              </p>
+              <p class="price-desc t-body-md">For trying Axiom on your own keys.</p>
+              <ul class="price-features">
+                <li><span class="tick" aria-hidden="true">✓</span> 1,000 node-runs / month</li>
+                <li><span class="tick" aria-hidden="true">✓</span> The full CLI and event log</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Community nodes</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Single org</li>
+              </ul>
+              <a class="btn btn--secondary btn--sm" href="#">Start free</a>
+            </article>
+
+            <!-- Pro — polarity-flipped featured tier (middle) -->
+            <article class="price-card price-card--featured">
+              <div class="price-tier">
+                <h3 class="t-display-md">Pro</h3>
+                <span class="price-flag">Most popular</span>
+              </div>
+              <p class="price-amount">
+                <span class="t-display-xl">$20</span>
+                <span class="per">/ month</span>
+              </p>
+              <p class="price-desc t-body-md">For teams running real outbound.</p>
+              <ul class="price-features">
+                <li><span class="tick" aria-hidden="true">✓</span> 100,000 node-runs / month</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Scheduling + webhook triggers</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Run history + cost ledger</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Priority first-party nodes</li>
+              </ul>
+              <a class="btn btn--on-dark btn--sm" href="#">Start a trial</a>
+            </article>
+
+            <!-- Enterprise -->
+            <article class="price-card">
+              <div class="price-tier">
+                <h3 class="t-display-md">Enterprise</h3>
+              </div>
+              <p class="price-amount">
+                <span class="t-display-xl">Custom</span>
+              </p>
+              <p class="price-desc t-body-md">For agencies running at scale.</p>
+              <ul class="price-features">
+                <li><span class="tick" aria-hidden="true">✓</span> Unlimited node-runs</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Multi-org with row-level security</li>
+                <li><span class="tick" aria-hidden="true">✓</span> SSO + audit log</li>
+                <li><span class="tick" aria-hidden="true">✓</span> Dedicated support</li>
+              </ul>
+              <a class="btn btn--secondary btn--sm" href="#">Contact sales</a>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── Footer (footer) ──────────────────────────────────────────────── -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a class="nav-brand" href="#" aria-label="Axiom home">
+              <svg class="nav-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2 L22 21 H2 Z" fill="#171717" />
+                <path d="M12 9 L17 19 H7 Z" fill="#ffffff" />
+              </svg>
+              Axiom
+            </a>
+            <p class="t-body-sm">
+              The durable workflow engine for go-to-market. Your keys, your data, exactly-once.
+            </p>
+          </div>
+
+          <div class="footer-col">
+            <h4>Product</h4>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#engine">Engine</a></li>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#">Nodes</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Developers</h4>
+            <ul>
+              <li><a href="#">Docs</a></li>
+              <li><a href="#">CLI reference</a></li>
+              <li><a href="#">SDK</a></li>
+              <li><a href="#">Changelog</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Company</h4>
+            <ul>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="#">Security</a></li>
+              <li><a href="#">Status</a></li>
+              <li><a href="#">Privacy</a></li>
+              <li><a href="#">Terms</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <span>© 2026 Axiom. All rights reserved.</span>
+          <span class="dim">Built on the locked design system in DESIGN.md.</span>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

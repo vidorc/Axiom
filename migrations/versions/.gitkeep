@@ -1,0 +1,5 @@
+# Alembic migration versions.
+#
+# Empty in Phase 0 — no schema exists yet. The first migration lands in Phase 1
+# when the domain models are written (DOMAIN_MODEL.md). This .gitkeep keeps the
+# directory under version control so `alembic revision --autogenerate` has a home.

@@ -1,0 +1,116 @@
+# Axiom local development stack.
+#
+# Brings up the full system in ONE command (`make up` / `docker compose up`):
+# Postgres + Redis + the api and worker run modes of the single Axiom image
+# (ADR-0002). This is the concrete proof of the "self-host in 10 minutes" promise
+# (BLUEPRINT.md principle 5) and the Phase 0 Spike C success criterion.
+#
+# MinIO (S3-compatible object store for large run payloads) is included but
+# commented — it is not needed until Phase 1 stores node outputs by reference.
+
+name: axiom
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: axiom
+      POSTGRES_PASSWORD: axiom
+      POSTGRES_DB: axiom
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axiom -d axiom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── One-shot schema migration ──────────────────────────────────────────────
+  # Brings the database to head BEFORE api/worker start. Runs to completion and
+  # exits 0; api/worker gate on `service_completed_successfully`, so they never
+  # boot against an un-migrated (or half-migrated) schema. This is the compose
+  # expression of the deploy order: migrate → app (entrypoint.sh).
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MODE: migrate
+      AXIOM_ENVIRONMENT: dev
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@postgres:5432/axiom
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MODE: api
+      AXIOM_ENVIRONMENT: dev
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@postgres:5432/axiom
+      AXIOM_REDIS_URL: redis://redis:6379/0
+      AXIOM_LOG_JSON: "false"  # pretty console logs in local dev
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # Uses the /ready probe wired in axiom.api.app — confirms the api can reach
+      # Postgres + Redis, not merely that the process is up.
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/ready').status==200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MODE: worker
+      AXIOM_ENVIRONMENT: dev
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@postgres:5432/axiom
+      AXIOM_REDIS_URL: redis://redis:6379/0
+      AXIOM_LOG_JSON: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # ── Object store (Phase 1 — large run payloads by reference) ────────────────
+  # minio:
+  #   image: minio/minio:latest
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: axiom
+  #     MINIO_ROOT_PASSWORD: axiomsecret
+  #   ports: ["9000:9000", "9001:9001"]
+  #   volumes: ["miniodata:/data"]
+
+volumes:
+  pgdata:
+  # miniodata:

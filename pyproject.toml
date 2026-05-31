@@ -1,0 +1,216 @@
+[project]
+name = "axiom"
+version = "0.0.0"
+description = "The orchestration layer for GTM engineers. Bring your own keys. Bring your own compute."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "The Axiom Authors" }]
+keywords = ["gtm", "orchestration", "workflow", "automation", "byok"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+
+# NOTE (ADR-0002): this is ONE installable package with multiple run modes,
+# not multiple services. The entrypoints below all import the same `axiom.*`
+# domain modules. See docs/adr/0002-modular-monolith.md and BLUEPRINT.md §3.1.
+dependencies = [
+    # Web / API
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    # Data layer (async)
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    # Cache / transport (NOT source of truth — ADR-0001)
+    "redis>=5.2",
+    # Config + validation
+    "pydantic>=2.10",
+    "pydantic-settings>=2.6",
+    # Structured, redaction-capable logging (SECURITY.md §5.4)
+    "structlog>=24.4",
+    # Envelope encryption for the credential vault (SECURITY.md §5) — AES-256-GCM
+    # data keys wrapped by a KEK from the pluggable key provider.
+    "cryptography>=44.0",
+    # Outbound HTTP for the instrumented ctx.http client (SDK_SPEC.md §4.4)
+    "httpx>=0.28",
+    # CLI (the only user surface in Phase 1 — PHASE_1.md WS-6)
+    "typer>=0.15",
+    # YAML manifest authoring (SDK_SPEC.md §3); normalized to jsonb on publish
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "import-linter>=2.1",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "pre-commit>=4.0",
+    # Type stubs
+    "types-pyyaml>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/axiom/axiom"
+Documentation = "https://github.com/axiom/axiom/blob/main/README.md"
+Repository = "https://github.com/axiom/axiom"
+
+# Thin entrypoints — all three import the same domain modules (ADR-0002).
+[project.scripts]
+axiom = "axiom.cli.main:app"             # the CLI (PHASE_1.md WS-6)
+axiom-api = "axiom.api.entrypoint:main"  # the API run mode
+axiom-worker = "axiom.worker.entrypoint:main"  # the worker run mode
+
+# ──────────────────────────────────────────────────────────────────────────
+# Build
+# ──────────────────────────────────────────────────────────────────────────
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/axiom"]
+
+# ──────────────────────────────────────────────────────────────────────────
+# uv (dependency + environment manager — audit G1)
+# ──────────────────────────────────────────────────────────────────────────
+[tool.uv]
+package = true
+
+# ──────────────────────────────────────────────────────────────────────────
+# Ruff (format + lint)
+# ──────────────────────────────────────────────────────────────────────────
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort (import ordering)
+    "N",         # pep8-naming
+    "UP",        # pyupgrade
+    "B",         # flake8-bugbear
+    "C4",        # flake8-comprehensions
+    "ASYNC",     # flake8-async (sharp edges in async code — audit R2)
+    "S",         # flake8-bandit (security — relevant for a credential-handling product)
+    "T20",       # flake8-print (no stray print; use structlog — SECURITY.md §5.4)
+    "RUF",       # ruff-specific
+]
+ignore = [
+    "E501",      # line length handled by the formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]  # asserts + test secret literals are expected
+"spikes/**" = ["S101", "T20"]  # spikes are throwaway (PHASE_0.md) — relaxed rules
+
+[tool.ruff.lint.isort]
+known-first-party = ["axiom"]
+
+# ──────────────────────────────────────────────────────────────────────────
+# mypy (strict type safety — brief CODE QUALITY bar)
+# ──────────────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = "spikes.*"
+ignore_errors = true   # spikes are throwaway and not held to strict typing
+
+# ──────────────────────────────────────────────────────────────────────────
+# pytest + coverage
+# ──────────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+# Test taxonomy (audit G6). Default `pytest` runs everything; CI lanes filter
+# by marker. The chaos lane (PHASE_1.md §6) is the engine's most important test.
+markers = [
+    "unit: fast, isolated, no external services (default lane)",
+    "integration: requires Postgres + Redis (service-container lane)",
+    "chaos: crash-recovery / idempotency under failure (PHASE_1.md §6)",
+]
+addopts = "--strict-markers -ra"
+
+[tool.coverage.run]
+source = ["src/axiom"]
+branch = true
+omit = [
+    "src/axiom/*/entrypoint.py",   # thin process bootstraps
+    "spikes/*",                    # throwaway (PHASE_0.md §7)
+]
+
+[tool.coverage.report]
+show_missing = true
+# No coverage floor yet — the skeleton is feature-free. A floor is introduced
+# in Phase 1 once the engine has real logic to cover (PHASE_1.md §6).
+
+# ──────────────────────────────────────────────────────────────────────────
+# import-linter — THE modular-monolith enforcement (ADR-0002, audit R1)
+#
+# These contracts make the dependency rule from BLUEPRINT.md §4 mechanical:
+# an illegal cross-module import FAILS CI. They are deliberately established
+# now, while the modules are empty, so the first real code is already
+# constrained — boundaries cannot be retrofitted onto accreted code.
+# ──────────────────────────────────────────────────────────────────────────
+[tool.importlinter]
+root_package = "axiom"
+include_external_packages = true
+
+# Contract 1 — Layered architecture.
+# Delivery (api/worker/cli) may use domains; domains may use platform; platform
+# may use shared. Never the reverse. "Nothing depends on the UI" and "domains
+# depend inward" (BLUEPRINT.md §4) are encoded here.
+[[tool.importlinter.contracts]]
+name = "Layered architecture: delivery > composition > domains > platform > shared"
+type = "layers"
+layers = [
+    "axiom.api | axiom.worker | axiom.cli",
+    "axiom.composition",
+    "axiom.domains",
+    "axiom.platform",
+    "axiom.shared",
+]
+
+# Contract 2 — Execution depends on Node Runtime, never the reverse.
+# The one explicit domain-to-domain rule from BLUEPRINT.md §4: the engine calls
+# the runtime through an interface; the runtime must never import the engine.
+[[tool.importlinter.contracts]]
+name = "Node runtime must not depend on execution"
+type = "forbidden"
+source_modules = ["axiom.domains.node_runtime"]
+forbidden_modules = ["axiom.domains.execution"]
+
+# Contract 3 — SDK independence (extractability).
+# The node SDK is the one component we expect to extract as a standalone
+# distributable in Phase 2 (`pip install axiom-sdk`). Keep it from importing
+# domains/platform/delivery now so that extraction stays a mechanical lift.
+[[tool.importlinter.contracts]]
+name = "SDK stays independent (extractable in Phase 2)"
+type = "forbidden"
+source_modules = ["axiom.sdk"]
+forbidden_modules = [
+    "axiom.domains",
+    "axiom.platform",
+    "axiom.api",
+    "axiom.worker",
+    "axiom.cli",
+]

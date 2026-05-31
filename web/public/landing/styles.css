@@ -1,0 +1,951 @@
+/* ============================================================================
+   Axiom — marketing surface
+   ----------------------------------------------------------------------------
+   This stylesheet is a faithful, 1:1 translation of the locked design-token
+   system in DESIGN.md (a Vercel-derived language). Every value below maps to a
+   token in that file — no new colors, no new type sizes, no sixth accent.
+
+   The two brand faces (Geist / Geist Mono) are proprietary; per DESIGN.md
+   §"Note on Font Substitutes" we use Inter (400/500/600) and JetBrains Mono
+   (400) as the documented open-source stand-ins.
+   ========================================================================== */
+
+/* ── Tokens ───────────────────────────────────────────────────────────────
+   DESIGN.md front-matter, verbatim. */
+:root {
+  /* colors */
+  --colors-primary: #171717;
+  --colors-on-primary: #ffffff;
+  --colors-ink: #171717;
+  --colors-body: #4d4d4d;
+  --colors-mute: #888888;
+  --colors-hairline: #ebebeb;
+  --colors-hairline-strong: #a1a1a1;
+  --colors-canvas: #ffffff;
+  --colors-canvas-soft: #fafafa;
+  --colors-canvas-soft-2: #f5f5f5;
+  --colors-link: #0070f3;
+  --colors-link-deep: #0761d1;
+  --colors-link-bg-soft: #d3e5ff;
+  --colors-success: #0070f3;
+  --colors-error: #ee0000;
+  --colors-error-soft: #f7d4d6;
+  --colors-error-deep: #c50000;
+  --colors-warning: #f5a623;
+  --colors-warning-soft: #ffefcf;
+  --colors-warning-deep: #ab570a;
+  --colors-violet: #7928ca;
+  --colors-violet-soft: #d8ccf1;
+  --colors-violet-deep: #4c2889;
+  --colors-cyan: #50e3c2;
+  --colors-cyan-soft: #aaffec;
+  --colors-cyan-deep: #29bc9b;
+  --colors-highlight-pink: #ff0080;
+  --colors-highlight-magenta: #eb367f;
+  --colors-gradient-develop-start: #007cf0;
+  --colors-gradient-develop-end: #00dfd8;
+  --colors-gradient-preview-start: #7928ca;
+  --colors-gradient-preview-end: #ff0080;
+  --colors-gradient-ship-start: #ff4d4d;
+  --colors-gradient-ship-end: #f9cb28;
+  --colors-selection-bg: #171717;
+  --colors-selection-fg: #f2f2f2;
+
+  /* font families — Geist / Geist Mono substitutes */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+  /* radius */
+  --rounded-none: 0px;
+  --rounded-xs: 4px;
+  --rounded-sm: 6px;
+  --rounded-md: 8px;
+  --rounded-lg: 12px;
+  --rounded-xl: 16px;
+  --rounded-pill-sm: 64px;
+  --rounded-pill: 100px;
+  --rounded-full: 9999px;
+
+  /* spacing — base unit 4px */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 40px;
+  --spacing-3xl: 48px;
+  --spacing-4xl: 64px;
+  --spacing-5xl: 96px;
+  --spacing-6xl: 128px;
+  --spacing-section: 192px;
+
+  /* elevation ladder (DESIGN.md §Elevation & Depth) — stacked offsets + inset hairline */
+  --elev-1: inset 0 0 0 1px #00000014;
+  --elev-2: 0px 1px 1px #00000005, 0px 2px 2px #0000000a, inset 0 0 0 1px #00000014;
+  --elev-3: 0px 2px 2px #0000000a, 0px 8px 8px -8px #0000000a, inset 0 0 0 1px #00000014;
+  --elev-4: 0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a, inset 0 0 0 1px #00000014;
+  --elev-5: 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f, inset 0 0 0 1px #00000014;
+
+  /* layout */
+  --page-width: 1400px;
+  --content-width: 1200px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--colors-canvas-soft); /* 98% white page body */
+  color: var(--colors-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "ss02"; /* geometric alternates, per DESIGN.md */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--colors-selection-bg);
+  color: var(--colors-selection-fg);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--colors-link);
+  outline-offset: 2px;
+  border-radius: var(--rounded-xs);
+}
+
+/* ── Typography scale (DESIGN.md §Typography → Hierarchy) ──────────────────── */
+.t-display-xl {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+}
+.t-display-lg {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 40px;
+  letter-spacing: -1.28px;
+}
+.t-display-md {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.96px;
+}
+.t-display-sm {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: -0.6px;
+}
+.t-body-lg {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+}
+.t-body-md {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+.t-body-md-strong {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.t-body-sm {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+}
+.t-body-sm-strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+}
+.t-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+.t-caption-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+.t-code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+/* The eyebrow: a mono, slightly-tracked, uppercase technical label.
+   DESIGN.md sets section eyebrows in caption-mono; the uppercase + tracking is
+   the brand's "deployment-dashboard" voice for small labels. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--colors-mute);
+}
+
+/* ── Layout helpers ───────────────────────────────────────────────────────
+   Content holds the max-width and centres; bands stretch edge-to-edge in
+   colour (DESIGN.md §Grid & Container, Ultra-wide row). */
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-lg);
+}
+
+.band {
+  padding-block: var(--spacing-5xl);
+}
+
+/* ── Banner pill (banner-marketing) ───────────────────────────────────────── */
+.banner {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--spacing-lg);
+}
+.banner-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background-color: var(--colors-canvas-soft);
+  color: var(--colors-body);
+  border: 1px solid var(--colors-hairline);
+  border-radius: var(--rounded-full);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  transition: border-color 0.15s ease;
+}
+.banner-pill:hover {
+  border-color: var(--colors-hairline-strong);
+}
+.banner-pill .badge {
+  background-color: var(--colors-ink);
+  color: var(--colors-on-primary);
+  border-radius: var(--rounded-full);
+  padding: 0 var(--spacing-xs);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.banner-pill .arrow {
+  color: var(--colors-mute);
+}
+
+/* ── Nav bar (nav-bar / nav-link / nav-cta-*) ─────────────────────────────── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 64px;
+  background-color: color-mix(in srgb, var(--colors-canvas) 80%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--colors-hairline);
+}
+.nav-inner {
+  height: 100%;
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.4px;
+  color: var(--colors-ink);
+}
+.nav-mark {
+  width: 22px;
+  height: 22px;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xxs);
+  margin-left: var(--spacing-md);
+}
+.nav-link {
+  color: var(--colors-body);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  border-radius: var(--rounded-full);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.nav-link:hover {
+  background-color: var(--colors-canvas-soft-2);
+  color: var(--colors-ink);
+}
+.nav-cta-cluster {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+/* nav-scale buttons: 6px radius, 28px tall (DESIGN.md — the two pill scales
+   coexist; nav uses the tight square scale, marketing uses the 100px pill) */
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 var(--spacing-xs);
+  border-radius: var(--rounded-sm);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+.nav-btn--signup {
+  background-color: var(--colors-primary);
+  color: var(--colors-on-primary);
+}
+.nav-btn--signup:hover {
+  opacity: 0.85;
+}
+.nav-btn--login {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+}
+.nav-btn--login:hover {
+  background-color: var(--colors-canvas-soft-2);
+}
+.nav-btn--ask-ai {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-color: var(--colors-hairline);
+}
+.nav-btn--ask-ai:hover {
+  border-color: var(--colors-hairline-strong);
+}
+
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  background: var(--colors-canvas);
+  border: 1px solid var(--colors-hairline);
+  border-radius: var(--rounded-sm);
+  cursor: pointer;
+}
+
+/* ── Marketing pill buttons (button-primary / button-secondary) ───────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  height: 48px;
+  padding: 0 var(--spacing-lg);
+  border-radius: var(--rounded-pill);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.12s ease, background-color 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn--primary {
+  background-color: var(--colors-primary);
+  color: var(--colors-on-primary);
+}
+.btn--primary:hover {
+  opacity: 0.88;
+}
+.btn--secondary {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-color: var(--colors-hairline);
+}
+.btn--secondary:hover {
+  border-color: var(--colors-hairline-strong);
+}
+/* small marketing pill (button-*-sm) used inside pricing cards */
+.btn--sm {
+  height: 40px;
+  padding: 0 var(--spacing-md);
+  font-size: 14px;
+  line-height: 20px;
+}
+/* on the dark polarity-flipped pricing card, the CTA inverts to a white pill */
+.btn--on-dark {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-color: transparent;
+}
+.btn--on-dark:hover {
+  opacity: 0.9;
+}
+
+/* ── Hero band (hero-band) ────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--colors-canvas);
+  border-bottom: 1px solid var(--colors-hairline);
+  padding-block: var(--spacing-6xl) var(--spacing-5xl);
+  text-align: center;
+}
+
+/* The mesh gradient — the brand's ENTIRE decoration system. A multi-stop
+   radial mesh (cyan / blue / violet / magenta / amber) floating as a flat 2-D
+   atmospheric backdrop across the top half of the hero. Never cropped, never
+   miniaturised (DESIGN.md §Brand Gradient + Do's). */
+.mesh {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  z-index: 0;
+  filter: blur(56px) saturate(135%);
+  opacity: 0.5;
+  pointer-events: none;
+  background-image:
+    radial-gradient(40% 55% at 18% 18%, var(--colors-gradient-develop-start) 0%, transparent 60%),
+    radial-gradient(45% 60% at 42% 8%, var(--colors-gradient-develop-end) 0%, transparent 62%),
+    radial-gradient(45% 60% at 62% 22%, var(--colors-gradient-preview-start) 0%, transparent 60%),
+    radial-gradient(42% 58% at 80% 10%, var(--colors-gradient-preview-end) 0%, transparent 60%),
+    radial-gradient(50% 60% at 90% 32%, var(--colors-gradient-ship-start) 0%, transparent 62%),
+    radial-gradient(55% 65% at 70% 40%, var(--colors-gradient-ship-end) 0%, transparent 60%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mesh {
+    animation: mesh-drift 22s ease-in-out infinite alternate;
+  }
+}
+@keyframes mesh-drift {
+  from {
+    transform: translate3d(-1.5%, -1%, 0) scale(1.02);
+  }
+  to {
+    transform: translate3d(1.5%, 1%, 0) scale(1.06);
+  }
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 820px;
+  margin-inline: auto;
+}
+.hero h1 {
+  margin: var(--spacing-lg) 0 0;
+}
+.hero-lead {
+  margin: var(--spacing-lg) auto 0;
+  max-width: 620px;
+  color: var(--colors-body);
+}
+.hero-cta {
+  margin-top: var(--spacing-xl);
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.hero-hint {
+  margin-top: var(--spacing-md);
+  color: var(--colors-mute);
+}
+.hero-hint code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--colors-body);
+  background: var(--colors-canvas-soft-2);
+  border: 1px solid var(--colors-hairline);
+  border-radius: var(--rounded-xs);
+  padding: 1px 6px;
+}
+
+/* ── Logo strip (logo-strip) ──────────────────────────────────────────────── */
+.logo-strip {
+  background-color: var(--colors-canvas);
+  border-bottom: 1px solid var(--colors-hairline);
+  padding-block: var(--spacing-2xl);
+}
+.logo-strip p {
+  text-align: center;
+  color: var(--colors-mute);
+  margin: 0 0 var(--spacing-lg);
+}
+.logo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2xl);
+}
+.logo-row span {
+  color: var(--colors-hairline-strong);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.4px;
+  opacity: 0.9;
+}
+
+/* ── Section header (shared) ──────────────────────────────────────────────── */
+.section-head {
+  max-width: 680px;
+  margin: 0 auto var(--spacing-3xl);
+  text-align: center;
+}
+.section-head h2 {
+  margin: var(--spacing-sm) 0 0;
+}
+.section-head p {
+  margin: var(--spacing-md) auto 0;
+  max-width: 560px;
+  color: var(--colors-body);
+}
+.section-head .eyebrow {
+  color: var(--colors-link);
+}
+
+/* ── Feature grid (card-marketing, 3-up) ──────────────────────────────────── */
+.feature-band {
+  background-color: var(--colors-canvas-soft);
+}
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+}
+.card {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-radius: var(--rounded-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--elev-3);
+}
+.card-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rounded-sm);
+  background: var(--colors-canvas-soft-2);
+  color: var(--colors-ink);
+  margin-bottom: var(--spacing-md);
+}
+.card h3 {
+  margin: 0 0 var(--spacing-xs);
+}
+.card p {
+  margin: 0;
+  color: var(--colors-body);
+}
+
+/* ── Dark showcase band (showcase-band-dark) + code-editor-mockup ─────────── */
+.showcase-dark {
+  background-color: var(--colors-primary);
+  color: var(--colors-on-primary);
+}
+.showcase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4xl);
+  align-items: center;
+}
+.showcase-dark .eyebrow {
+  color: var(--colors-cyan);
+}
+.showcase-copy h2 {
+  margin: var(--spacing-sm) 0 0;
+}
+.showcase-copy p {
+  margin: var(--spacing-md) 0 0;
+  color: #bdbdbd; /* body text on the dark band — a calm light gray */
+}
+.showcase-list {
+  margin-top: var(--spacing-lg);
+  display: grid;
+  gap: var(--spacing-sm);
+}
+.showcase-list li {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  color: #d4d4d4;
+  font-size: 16px;
+  line-height: 24px;
+}
+.showcase-list .tick {
+  color: var(--colors-cyan);
+  flex: none;
+  margin-top: 2px;
+}
+
+/* code-editor-mockup: dark surface, mono text, 8px radius. Sits one notch
+   lighter than the band so it reads as a panel on the dark section. */
+.code-mock {
+  background-color: #0a0a0a;
+  color: var(--colors-on-primary);
+  border-radius: var(--rounded-md);
+  box-shadow: var(--elev-5);
+  border: 1px solid #262626;
+  overflow: hidden;
+}
+.code-mock-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid #1f1f1f;
+}
+.code-mock-bar .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: var(--rounded-full);
+}
+.code-mock-bar .dot:nth-child(1) {
+  background: #ff5f57;
+}
+.code-mock-bar .dot:nth-child(2) {
+  background: #febc2e;
+}
+.code-mock-bar .dot:nth-child(3) {
+  background: #28c840;
+}
+.code-mock-bar .file {
+  margin-left: var(--spacing-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.code-mock pre {
+  margin: 0;
+  padding: var(--spacing-lg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 20px;
+  overflow-x: auto;
+  tab-size: 2;
+}
+.code-mock code {
+  font-family: inherit;
+}
+/* minimal, on-brand syntax tones drawn only from the locked palette */
+.tok-key {
+  color: var(--colors-cyan);
+}
+.tok-str {
+  color: #e5e5e5;
+}
+.tok-com {
+  color: #6b6b6b;
+}
+.tok-fn {
+  color: var(--colors-warning);
+}
+.tok-num {
+  color: var(--colors-highlight-pink);
+}
+.code-prompt {
+  color: var(--colors-cyan);
+}
+
+/* ── Mesh feature band (feature-mesh-band) ────────────────────────────────── */
+.mesh-band {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--colors-canvas);
+  text-align: center;
+  border-top: 1px solid var(--colors-hairline);
+  border-bottom: 1px solid var(--colors-hairline);
+}
+.mesh-band .mesh {
+  inset: auto -10% -30% -10%;
+  height: 80%;
+  opacity: 0.38;
+}
+.mesh-band .container {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+.mesh-band h2 {
+  margin: var(--spacing-sm) 0 0;
+}
+.mesh-band p {
+  margin: var(--spacing-md) auto 0;
+  max-width: 540px;
+  color: var(--colors-body);
+}
+.mesh-band .hero-cta {
+  margin-top: var(--spacing-xl);
+}
+
+/* ── Pricing (pricing-card + pricing-card-featured) ───────────────────────── */
+.pricing-band {
+  background-color: var(--colors-canvas-soft);
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-lg);
+  align-items: stretch;
+}
+.price-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-radius: var(--rounded-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--elev-4);
+}
+/* the featured (Pro) tier is polarity-flipped to ink — the brand's depth cue */
+.price-card--featured {
+  background-color: var(--colors-primary);
+  color: var(--colors-on-primary);
+}
+.price-tier {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+.price-tier h3 {
+  margin: 0;
+}
+.price-flag {
+  background-color: var(--colors-canvas);
+  color: var(--colors-ink);
+  border-radius: var(--rounded-full);
+  padding: 2px var(--spacing-xs);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.price-amount {
+  margin: var(--spacing-md) 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+}
+.price-amount .per {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.28px;
+  color: var(--colors-mute);
+}
+.price-card--featured .price-amount .per {
+  color: #a3a3a3;
+}
+.price-desc {
+  margin: var(--spacing-sm) 0 0;
+  color: var(--colors-body);
+}
+.price-card--featured .price-desc {
+  color: #bdbdbd;
+}
+.price-features {
+  margin: var(--spacing-lg) 0 var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-sm);
+}
+.price-features li {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+  color: var(--colors-body);
+}
+.price-card--featured .price-features li {
+  color: #d4d4d4;
+}
+.price-features .tick {
+  color: var(--colors-link);
+  flex: none;
+  margin-top: 1px;
+}
+.price-card--featured .price-features .tick {
+  color: var(--colors-cyan);
+}
+.price-card .btn {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* ── Footer (footer) ──────────────────────────────────────────────────────── */
+.footer {
+  background-color: var(--colors-canvas);
+  border-top: 1px solid var(--colors-hairline);
+  color: var(--colors-body);
+  padding-block: var(--spacing-4xl);
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: var(--spacing-2xl);
+}
+.footer-brand .nav-brand {
+  font-size: 17px;
+}
+.footer-brand p {
+  margin: var(--spacing-md) 0 0;
+  max-width: 280px;
+  color: var(--colors-mute);
+}
+.footer-col h4 {
+  margin: 0 0 var(--spacing-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--colors-mute);
+  font-weight: 400;
+}
+.footer-col li + li {
+  margin-top: var(--spacing-sm);
+}
+.footer-col a {
+  color: var(--colors-body);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.28px;
+}
+.footer-col a:hover {
+  color: var(--colors-ink);
+}
+.footer-bottom {
+  max-width: var(--content-width);
+  margin: var(--spacing-3xl) auto 0;
+  padding: var(--spacing-lg) var(--spacing-lg) 0;
+  border-top: 1px solid var(--colors-hairline);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  color: var(--colors-mute);
+  font-size: 14px;
+  letter-spacing: -0.28px;
+}
+.footer-bottom .dim {
+  color: var(--colors-hairline-strong);
+}
+
+/* ── Responsive (DESIGN.md §Responsive Strategy) ──────────────────────────── */
+@media (max-width: 959px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr); /* 3-up → 2-up at tablet */
+  }
+  .showcase-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 460px;
+    margin-inline: auto;
+  }
+  /* featured tier always sits in the middle of the stacked column */
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-xl);
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 599px) {
+  .t-display-xl {
+    font-size: 36px;
+    line-height: 38px;
+    letter-spacing: -1.6px;
+  }
+  .t-display-lg {
+    font-size: 26px;
+    line-height: 32px;
+    letter-spacing: -1px;
+  }
+  .nav-links {
+    display: none; /* collapses to hamburger at mobile */
+  }
+  .nav-toggle {
+    display: inline-flex;
+  }
+  .nav-cta-cluster .nav-btn--ask-ai {
+    display: none;
+  }
+  .feature-grid {
+    grid-template-columns: 1fr; /* 1-up at mobile */
+  }
+  .hero {
+    padding-block: var(--spacing-5xl) var(--spacing-4xl);
+  }
+  .band {
+    padding-block: var(--spacing-4xl);
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
+  .hero-cta .btn,
+  .mesh-band .hero-cta .btn {
+    width: 100%;
+  }
+}

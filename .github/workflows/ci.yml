@@ -1,0 +1,197 @@
+# CI — runs the SAME gate as `make check`, so "green locally" means "green in CI"
+# (CONTRIBUTING.md). Jobs map 1:1 to the Makefile targets.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_FROZEN: "1"
+
+jobs:
+  # ── Quality gate: format, lint, types, module boundaries ──────────────────
+  quality:
+    name: Quality (lint · types · boundaries)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Sync dependencies
+        run: uv sync --extra dev
+      - name: Format check (ruff)
+        run: uv run ruff format --check src tests
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+      - name: Type check (mypy --strict)
+        run: uv run mypy src
+      - name: Module boundaries (import-linter — ADR-0002)
+        run: uv run lint-imports
+
+  # ── Unit lane: fast, no external services ─────────────────────────────────
+  test-unit:
+    name: Tests (unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Sync dependencies
+        run: uv sync --extra dev
+      - name: Run unit tests
+        run: uv run pytest -m unit --cov --cov-report=xml
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  # ── Integration lane: real Postgres + Redis as service containers ─────────
+  test-integration:
+    name: Tests (integration)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: axiom
+          POSTGRES_PASSWORD: axiom
+          POSTGRES_DB: axiom
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U axiom -d axiom"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      AXIOM_ENVIRONMENT: test
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@localhost:5432/axiom
+      AXIOM_REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Sync dependencies
+        run: uv sync --extra dev
+      - name: Run integration tests
+        run: uv run pytest -m integration
+
+  # ── Chaos lane: crash recovery is a Phase-1 CI gate (PHASE_1.md §6) ─────────
+  # The orchestrator now exists, so the chaos test (kill mid-run → resume to
+  # exactly-once) is promoted from "exists in tests/chaos/" to a required gate.
+  test-chaos:
+    name: Tests (chaos — crash recovery)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: axiom
+          POSTGRES_PASSWORD: axiom
+          POSTGRES_DB: axiom
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U axiom -d axiom"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      AXIOM_ENVIRONMENT: test
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@localhost:5432/axiom
+      AXIOM_REDIS_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Sync dependencies
+        run: uv sync --extra dev
+      - name: Run chaos tests
+        run: uv run pytest -m chaos
+
+  # ── Migrations: prove the Alembic chain applies to a fresh DB and matches the
+  # ORM models. Tests build schema via Base.metadata.create_all, so without this
+  # a migration could silently drift from the models — and migrations are exactly
+  # what a deployment runs (entrypoint MODE=migrate). This gate closes that gap.
+  migrations:
+    name: Migrations (fresh DB apply + drift check)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: axiom
+          POSTGRES_PASSWORD: axiom
+          POSTGRES_DB: axiom
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U axiom -d axiom"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      AXIOM_ENVIRONMENT: test
+      AXIOM_DATABASE_URL: postgresql+asyncpg://axiom:axiom@localhost:5432/axiom
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - name: Sync dependencies
+        run: uv sync --extra dev
+      - name: Apply migrations to a fresh database
+        run: uv run alembic upgrade head
+      - name: Assert no model drift (autogenerate must be empty)
+        run: |
+          uv run alembic revision --autogenerate -m "ci drift check"
+          gen="$(ls -t migrations/versions/*ci_drift_check.py | head -1)"
+          # An empty upgrade()/downgrade() (only `pass`) means the schema matches
+          # the ORM models. Any op() call means a migration is missing — fail.
+          # (Autogenerate only writes the file; it does not stamp the DB, so the
+          # head is unchanged and removing the file leaves the chain intact.)
+          if grep -E "op\.(create|drop|add|alter|rename)" "$gen"; then
+            echo "::error::Schema drift detected — a migration is missing for a model change."
+            cat "$gen"
+            exit 1
+          fi
+          echo "No drift: migrations match the ORM models."
+          rm -f "$gen"
+      - name: Verify downgrade chain
+        run: uv run alembic downgrade base
+
+  # ── Image: build the single artifact and smoke-test the CLI run mode ──────
+  build-image:
+    name: Image build + smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t axiom:ci .
+      - name: Smoke — CLI run mode starts
+        run: |
+          out="$(docker run --rm -e MODE=cli axiom:ci version)"
+          echo "axiom version → $out"
+          test -n "$out"

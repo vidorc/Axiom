@@ -1,0 +1,41 @@
+# Standalone dev datastores for running Axiom's integration/chaos tests on a
+# host that already has Postgres/Redis bound to the default ports.
+#
+# This is intentionally SEPARATE from the top-level docker-compose.yml (which is
+# the canonical "self-host in one command" stack on default ports). We give it
+# its own project name and remapped HOST ports so it can coexist with anything
+# else on the machine. Container-internal ports remain standard.
+#
+#   make test-stack-up     # bring these up
+#   make test-integration  # run tests pointed at them
+#   make test-stack-down   # tear down
+name: axiom-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: axiom
+      POSTGRES_PASSWORD: axiom
+      POSTGRES_DB: axiom
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axiom -d axiom"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    tmpfs:
+      # Ephemeral storage — this is a throwaway test datastore, not durable dev
+      # state. Faster, and `down` leaves nothing behind.
+      - /var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
