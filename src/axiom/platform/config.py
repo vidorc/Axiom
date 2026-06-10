@@ -86,7 +86,12 @@ class Settings(BaseSettings):
     # in non-dev. Never a wildcard by default — an explicit allowlist is the safe
     # posture (and required once credentialed auth lands in WS-4).
     api_cors_allow_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000", "http://localhost:3010"]
+        default_factory=lambda: [  "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3010",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3010",]
     )
 
     @field_validator("api_cors_allow_origins", mode="before")
