@@ -1,99 +1,379 @@
+<p align="center">
+  <img src="assets/axiom-thumbnail.png" alt="Axiom Workflow Orchestration Platform" width="100%">
+</p>
 <div align="center">
+<br/>
 
-# Axiom
+<h1>AXIOM</h1>
+<h3>Open-Source GTM Workflow Orchestration Engine</h3>
 
-**The orchestration layer for GTM engineers.**
-Bring your own keys. Bring your own compute.
+<p>Self-hosted. Composable. Built for operators who automate enrichment, scraping, outreach, and data pipelines — not just trigger isolated tasks.</p>
+
+<br/>
+
+[![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-000000?style=for-the-badge&logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active_Development-6C63FF?style=flat-square)]()
+[![Self-Hosted](https://img.shields.io/badge/Deployment-Self--Hosted-4ECDC4?style=flat-square)]()
 
 </div>
 
 ---
 
-Axiom is an open-source, self-hostable **GTM orchestration engine**. Technical go-to-market teams build enrichment, scraping, outreach, and data-processing workflows as DAGs, running against *their own* provider keys (OpenAI, Anthropic, Apollo, Smartlead, Prospeo, custom APIs) on *their own* compute — never metered per action.
+## The Problem
 
-It is **not** a CRM, a lead-gen tool, an AI SDR, or an outreach platform. It is the execution engine behind modern GTM workflows. The product is the **engine + the node ecosystem + the builder**, in that order.
+Modern GTM stacks are fragmented. Enrichment runs in one tool. Scraping in another. Outreach in a third. Data processing somewhere else entirely.
 
-> **Status: foundation / pre-code.** This repository currently contains the architecture and planning documents for building Axiom over ~12 months. There is no application code yet — the build begins with Phase 0 (`PHASE_0.md`). These docs are the committed, reviewed source of truth; if you disagree with a decision, open an ADR that supersedes it rather than diverging silently.
+Every automation is a one-off script, a brittle Zapier chain, or an expensive SaaS black box.
 
----
-
-## Why Axiom
-
-- **Stop being metered.** Action-based pricing punishes volume. Pay your providers directly; Axiom never charges per action — only for hosting, on the optional cloud.
-- **Own your stack.** Self-host the engine, the runtime, and the builder. The core is Apache-2.0.
-- **Extend it without us.** Most integrations are a declarative manifest, not code — so a non-engineer can add a provider in minutes. Power users drop to code nodes or attach MCP servers.
-
-The wedge is the **Clay-cost refugee** and the **growth agency**; the moat is the **node/template ecosystem + data gravity**, not BYOK or MCP (both are accelerants, copyable in a weekend). See [`BLUEPRINT.md`](BLUEPRINT.md) §1 and [ADR-0005](docs/adr/0005-agencies-as-initial-wedge.md) / [ADR-0006](docs/adr/0006-ecosystem-as-moat.md).
+**Axiom replaces all of it** — with a self-hosted, Postgres-backed DAG execution engine where you define, version, and run end-to-end workflows as composable pipelines.
 
 ---
 
-## The 60-second architecture
-
-A **modular monolith** (one image, `api` + `worker` modes) on **PostgreSQL + Redis** — *not* microservices, *not* Temporal, *not* Celery. The workflow engine is a custom, Postgres-backed DAG orchestrator: durable run state, `SKIP LOCKED` work-claiming, lease-based crash recovery, and an append-only event log from which history, the live run viewer, and audit all fall out as projections. Python-first backend (FastAPI); Next.js frontend.
-
-The "why" behind each of those is an ADR — they are the expensive-to-reverse decisions:
-
-| ADR | Decision |
-|---|---|
-| [0001](docs/adr/0001-postgres-redis-over-temporal.md) | PostgreSQL + Redis custom engine over Temporal/Celery |
-| [0002](docs/adr/0002-modular-monolith.md) | Modular monolith over microservices |
-| [0003](docs/adr/0003-python-first.md) | Python-first backend |
-| [0004](docs/adr/0004-http-manifest-nodes.md) | HTTP-manifest as the primary node type |
-| [0005](docs/adr/0005-agencies-as-initial-wedge.md) | Agencies + Clay-cost refugees as the initial wedge |
-| [0006](docs/adr/0006-ecosystem-as-moat.md) | Ecosystem + data gravity as the moat |
-
----
-
-## Documentation map
-
-Start with `BLUEPRINT.md`; everything else is depth on one slice of it.
-
-| Document | What it covers |
-|---|---|
-| **[BLUEPRINT.md](BLUEPRINT.md)** | Vision, system architecture, domain boundaries, open-core split, the 12-month roadmap. The keystone. |
-| **[docs/adr/](docs/adr/)** | Architecture Decision Records — the choices that are expensive to reverse, each with revisit triggers. |
-| **[DOMAIN_MODEL.md](DOMAIN_MODEL.md)** | Entities, relationships, and the execution / credential / node / marketplace models. |
-| **[SECURITY.md](SECURITY.md)** | Threat model, the credential vault, scoping, tenant isolation, node trust tiers, SSRF, MCP security. |
-| **[SDK_SPEC.md](SDK_SPEC.md)** | The node SDK: three node kinds, the manifest format, the 2-method contract, versioning, publishing. |
-| **[UI_SYSTEM.md](UI_SYSTEM.md)** | Information architecture, navigation, the workflow builder UX, interaction principles. |
-| **[DESIGN.md](DESIGN.md)** | The locked visual design-token system (Vercel-derived). UI_SYSTEM defers to this for all pixels. |
-| **[PHASE_0.md](PHASE_0.md)** | The 4-week de-risking spike plan that opens the build. |
-| **[PHASE_1.md](PHASE_1.md)** | The core-engine build plan (weeks 5–12), ending in a dogfooded cold-outbound workflow. |
-
-### Reading orders by role
-
-- **New engineer:** `BLUEPRINT.md` → the ADR index → `DOMAIN_MODEL.md` → `SECURITY.md` → the current phase plan.
-- **Node contributor:** `SDK_SPEC.md` → [ADR-0004](docs/adr/0004-http-manifest-nodes.md) → the node sections of `DOMAIN_MODEL.md`.
-- **Frontend / design:** `UI_SYSTEM.md` → `DESIGN.md` → `BLUEPRINT.md` §2 (product philosophy).
-- **Founder / GTM:** `BLUEPRINT.md` §1 → [ADR-0005](docs/adr/0005-agencies-as-initial-wedge.md) → [ADR-0006](docs/adr/0006-ecosystem-as-moat.md).
-- **Security review:** `SECURITY.md` → the credential model in `DOMAIN_MODEL.md` §5 → trust tiers in `SDK_SPEC.md`.
-
----
-
-## Roadmap at a glance
-
-Phases overlap deliberately, and **every phase ends in something a real user can touch**. Full detail in [`BLUEPRINT.md`](BLUEPRINT.md) §8.
+## What Axiom Does
 
 ```
-Phase 0  Architecture & spikes      — de-risk the irreversible decisions          (wk 1–4)
-Phase 1  Core engine                — orchestrator + vault + ~7 nodes + CLI         (wk 5–12)   ← dogfooding starts
-Phase 2  Node runtime & SDK         — the public SDK; the contributor flywheel      (wk 10–18)
-Phase 3  Workflow builder           — the canvas, the output table, live runs        (wk 16–28)  ← public OSS launch
-Phase 4  MCP runtime                — attach MCP servers as nodes                     (wk 26–34)
-Phase 5  Team, marketplace, ecosystem — multi-org, marketplace, enrichment cache     (wk 32–42)
-Phase 6  Cloud platform             — managed hosting, billing, sandboxed nodes       (wk 40–52)
+Input Source → Enrichment Steps → Filter / Transform → Outreach → Output / Sink
+     ↓               ↓                    ↓               ↓            ↓
+  CSV / API     Clay · Apollo      Conditional Logic    Email/LinkedIn   CRM / DB
+  Webhook       LinkedIn          Deduplication          Sequence        Webhook
+  Database      Web Scraper       Scoring / Ranking      Notification    Export
 ```
+
+Each step in a workflow is a **node** — a typed, versioned unit with defined inputs, outputs, retry logic, and error handling. Nodes connect into **DAGs**. DAGs are what you run.
+
+---
+
+## Architecture
+
+### Core Engine
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Axiom Engine                        │
+│                                                         │
+│  ┌─────────────┐    ┌──────────────┐    ┌───────────┐  │
+│  │  DAG Parser  │───▶│  Scheduler   │───▶│  Executor │  │
+│  │  (Pydantic)  │    │  (Topological│    │  (Async)  │  │
+│  └─────────────┘    │   Sort)      │    └───────────┘  │
+│                     └──────────────┘          │         │
+│                                               ▼         │
+│  ┌─────────────┐    ┌──────────────┐    ┌───────────┐  │
+│  │  Node SDK    │    │  State Store │◀───│  Workers  │  │
+│  │  (Python)    │    │  (Postgres)  │    │  (Celery) │  │
+│  └─────────────┘    └──────────────┘    └───────────┘  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Repository Structure
+
+```
+axiom/
+├── engine/           — DAG execution runtime (core)
+│   ├── parser.py     — Workflow YAML/JSON → validated DAG
+│   ├── scheduler.py  — Topological sort + dependency resolution
+│   ├── executor.py   — Async node execution with retry/backoff
+│   └── state.py      — Execution state machine (PENDING → RUNNING → DONE)
+│
+├── nodes/            — Built-in node library
+│   ├── enrichment/   — Apollo, Clay, LinkedIn, Clearbit
+│   ├── scraping/     — Playwright, HTTP, RSS
+│   ├── transform/    — Filter, Deduplicate, Score, Map
+│   ├── outreach/     — Email sequence, LinkedIn DM, Webhook
+│   └── output/       — Postgres, CSV, CRM sinks
+│
+├── api/              — FastAPI REST + WebSocket
+│   ├── workflows/    — CRUD, trigger, schedule
+│   ├── runs/         — Execution history, logs, replay
+│   └── nodes/        — Node registry and schemas
+│
+├── worker/           — Celery task queue
+├── web/              — React 19 dashboard
+└── sdk/              — Python SDK for custom nodes
+```
+
+---
+
+## Why Axiom Over Alternatives?
+
+| | Axiom | n8n | Zapier | Clay |
+|---|---|---|---|---|
+| Self-hosted | ✅ | ✅ | ❌ | ❌ |
+| Custom nodes (Python SDK) | ✅ | ❌ | ❌ | ❌ |
+| DAG with branching + joins | ✅ | Partial | ❌ | ❌ |
+| Version-controlled workflows | ✅ | ❌ | ❌ | ❌ |
+| AI-native node types | ✅ | ❌ | ❌ | Partial |
+| No per-task pricing | ✅ | ✅ | ❌ | ❌ |
+| Postgres-backed state | ✅ | ❌ | ❌ | ❌ |
+
+---
+
+## Node SDK
+
+Define custom nodes in Python. Axiom handles scheduling, retries, logging, and UI registration automatically.
+
+```python
+from axiom.sdk import Node, NodeInput, NodeOutput
+
+class EnrichContactNode(Node):
+    name = "enrich_contact"
+    description = "Enriches a contact record via Apollo and LinkedIn"
+
+    class Input(NodeInput):
+        email: str
+        company: str | None = None
+
+    class Output(NodeOutput):
+        full_name: str
+        title: str
+        linkedin_url: str
+        company_size: int
+        enrichment_confidence: float
+
+    async def execute(self, input: Input) -> Output:
+        apollo_data = await self.integrations.apollo.enrich(input.email)
+        linkedin_data = await self.integrations.linkedin.lookup(input.email)
+
+        return self.Output(
+            full_name=apollo_data.name,
+            title=apollo_data.title,
+            linkedin_url=linkedin_data.profile_url,
+            company_size=apollo_data.company.headcount,
+            enrichment_confidence=self._score_confidence(apollo_data, linkedin_data)
+        )
+```
+
+Register once in `axiom.config.py` — the node appears in the workflow builder UI automatically.
+
+---
+
+## Workflow Definition
+
+Workflows are YAML — version-controlled, diffable, and portable:
+
+```yaml
+name: inbound-icp-enrichment
+version: 2
+trigger:
+  type: webhook
+  path: /hooks/new-signup
+
+steps:
+  - id: enrich
+    node: enrich_contact
+    input:
+      email: "{{ trigger.email }}"
+      company: "{{ trigger.company }}"
+
+  - id: score
+    node: icp_scoring
+    depends_on: [enrich]
+    input:
+      contact: "{{ enrich.output }}"
+      icp_profile: "saas-smb-v3"
+
+  - id: route
+    node: conditional_branch
+    depends_on: [score]
+    branches:
+      - condition: "{{ score.output.fit_score >= 0.8 }}"
+        next: high_intent_sequence
+      - condition: "{{ score.output.fit_score >= 0.5 }}"
+        next: nurture_sequence
+      - default: true
+        next: archive
+
+  - id: high_intent_sequence
+    node: email_sequence
+    depends_on: [route]
+    input:
+      contact: "{{ enrich.output }}"
+      sequence_id: "hs-demo-request"
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
+|---|---|---|
+| **Runtime** | Python 3.12, asyncio | Native async for high-throughput node execution |
+| **API** | FastAPI | Auto-generated OpenAPI, async request handling |
+| **Execution** | Celery + Redis | Distributed workers, priority queues |
+| **State** | PostgreSQL + SQLAlchemy | Full queryability, point-in-time replay |
+| **Migrations** | Alembic | Version-controlled schema changes |
+| **AI Nodes** | LangGraph + Groq | Agentic reasoning within DAG execution |
+| **Frontend** | React 19, TypeScript | Workflow builder, run monitoring, node registry |
+| **UI** | Tailwind CSS, shadcn/ui | Consistent component system |
+| **Auth** | JWT + RBAC | Multi-user workspace support |
+| **Infra** | Docker, Docker Compose | Single-command self-hosted deployment |
+| **Testing** | Pytest, Playwright | Unit + integration + E2E |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Python 3.12+ (for SDK development)
+
+### 1. Clone and Configure
+
+```bash
+git clone https://github.com/vidorc/Axiom.git
+cd Axiom
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+DATABASE_URL=postgresql://axiom:axiom@db:5432/axiom
+REDIS_URL=redis://redis:6379/0
+SECRET_KEY=your-secret-key-here
+GROQ_API_KEY=gsk_your_groq_api_key
+APOLLO_API_KEY=your_apollo_key
+```
+
+### 2. Start Everything
+
+```bash
+make up
+```
+
+| Service | URL |
+|---|---|
+| Dashboard | http://localhost:3000 |
+| API | http://localhost:8000 |
+| Swagger Docs | http://localhost:8000/docs |
+| Worker Monitor | http://localhost:5555 |
+
+### 3. Migrate and Seed
+
+```bash
+make migrate
+```
+
+### 4. Trigger a Workflow
+
+```bash
+curl -X POST http://localhost:8000/api/workflows/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"workflow": "example-enrichment", "input": {"email": "test@example.com"}}'
+```
+
+---
+
+## Development
+
+```bash
+make setup       # Install dev dependencies
+make dev-api     # FastAPI with hot reload
+make dev-web     # React dev server
+make test        # Full test suite
+make lint        # Ruff + mypy + ESLint
+make migrate     # Run Alembic migrations
+make clean       # Remove containers and volumes
+```
+
+---
+
+## Use Cases
+
+**Lead Enrichment Pipeline** — Inbound signup hits webhook → enrich via Apollo → score ICP fit → route to email sequence or archive → update CRM
+
+**Prospect Research** — Upload CSV of target accounts → scrape company websites → enrich contacts → generate personalized outreach angles → export to Outreach
+
+**Data Processing** — Pull from multiple API sources → deduplicate → normalize → transform → load into database or BI tool
+
+**Competitive Intelligence** — Monitor competitor job postings, pricing pages, and product releases → filter by relevance → summarize via LLM → push to Slack
+
+---
+
+## Roadmap
+
+### ✅ Phase 0 — Architecture (Complete)
+- [x] Domain model and ADR documentation
+- [x] DAG execution engine design
+- [x] Node SDK specification
+- [x] Database schema and migration framework
+- [x] API surface design
+- [x] Frontend design system
+- [x] Docker development environment
+- [x] Security model (JWT + RBAC)
+
+### 🚧 Phase 1 — Core Engine (Active)
+- [ ] DAG parser and validator
+- [ ] Topological scheduler
+- [ ] Async executor with retry/backoff
+- [ ] Postgres state store
+- [ ] REST API (CRUD + trigger)
+- [ ] React dashboard MVP
+- [ ] Built-in node library
+
+### 🔮 Phase 2 — Workflow Intelligence
+- [ ] LangGraph AI node types
+- [ ] Visual drag-and-drop workflow builder
+- [ ] Workflow versioning and diff view
+- [ ] Execution replay and step-level debugging
+- [ ] Webhook and cron trigger system
+
+### 🔮 Phase 3 — Production Hardening
+- [ ] Multi-workspace support
+- [ ] Secrets management vault
+- [ ] Rate limiting per integration
+- [ ] Workflow marketplace (community templates)
+- [ ] One-click Railway / Render deployment
+
+---
+
+## Self-Hosting
+
+Axiom runs entirely on your infrastructure. No usage-based pricing. No vendor lock-in. No data leaving your environment.
+
+**Minimum requirements:** 2 vCPU · 4GB RAM (dev) · 4 vCPU · 8GB RAM (production)
+
+Runs on: any VPS, Railway, Render, Fly.io, AWS EC2, GCP, or bare metal.
 
 ---
 
 ## Contributing
 
-Axiom is open-source first; the contributor experience is the moat ([ADR-0006](docs/adr/0006-ecosystem-as-moat.md)). Contribution mechanics (the public node SDK, the registry, templates) land in **Phase 2** — until then, the highest-value contribution is **pressure-testing these documents**. If a decision looks wrong, the right move is a superseding ADR with the trade-offs spelled out, not a quiet divergence.
+Axiom is early-stage and actively developed. Contributions are welcome.
 
-The core engine, runtime, SDK, and builder are intended to be **Apache-2.0**. Cloud-specific control-plane components may later carry a time-delayed BSL; the engine and SDK stay permanently permissive. See [`BLUEPRINT.md`](BLUEPRINT.md) §5.
+```bash
+git clone https://github.com/YOUR_USERNAME/Axiom.git
+git checkout -b feat/your-feature-name
+make test && make lint
+# then open a pull request
+```
+
+---
+
+## 👨‍💻 Author
+
+**Mayank Sharma** — Autonomous AI Systems Engineer
+
+Building production-grade AI systems that replace manual workflows end-to-end.
+
+[![GitHub](https://img.shields.io/badge/GitHub-@vidorc-181717?style=flat-square&logo=github)](https://github.com/vidorc)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Mayank_Sharma-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/mayank-sharma)
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
-<sub>Axiom — open-source revenue infrastructure.</sub>
+<sub>Built with intentional architecture. Designed to replace, not augment.</sub>
 </div>
