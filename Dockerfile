@@ -21,7 +21,7 @@ WORKDIR /app
 
 # Install dependencies first (cached layer — only re-runs when deps change).
 COPY pyproject.toml uv.lock* ./
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project --no-dev || \
     uv sync --no-install-project --no-dev
 
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY src ./src
 COPY migrations ./migrations
 COPY alembic.ini ./
-RUN --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,id=uv-cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev || uv sync --no-dev
 
 # ── Stage 2: runtime ─────────────────────────────────────────────────────────
